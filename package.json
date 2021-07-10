@@ -1,0 +1,7 @@
+{
+  "name": "@kort/root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
