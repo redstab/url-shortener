@@ -1,5 +1,5 @@
 {
-  "name": "lank-kort",
+  "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/redstab/url-shortener.git",
@@ -15,6 +15,7 @@
   },
   "scripts": {
     "dev": "nodemon dist/index.js",
-    "build:watch": "tsc --watch"
+    "build:watch": "tsc --watch",
+    "build": "tsc"
   }
 }
