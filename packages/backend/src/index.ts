@@ -1,13 +1,22 @@
 import express, { Application, Request, Response } from 'express';
-import { createNodeRedisClient } from 'handy-redis';
 import path from 'path';
-
+//2YYBcpZ76MSo5xtB
 const app: Application = express();
 const port: number = 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../../frontend/build')));
+
+app.get('/:id', async (req: Request, res: Response): Promise<Response> => {
+  const { id } = req.params;
+  const ip =
+    //@ts-ignore
+    (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+    req.socket?.remoteAddress ||
+    req.ip;
+  return res.status(200).send({ id, ip });
+});
 
 app.post('/', async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).send({ msg: 'Done' });
