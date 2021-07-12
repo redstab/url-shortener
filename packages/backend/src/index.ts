@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express';
+import { createNodeRedisClient } from 'handy-redis';
 import path from 'path';
 
 const app: Application = express();

@@ -1,0 +1,6 @@
+version: "3.9"
+services:
+  web:
+    command: "yarn tsnd --project packages/backend/tsconfig.json packages/backend/src/index.ts"
+    volumes:
+      - ./:/app
