@@ -23,7 +23,7 @@ app.post('/', async (req: Request, res: Response): Promise<Response> => {
 });
 
 try {
-  app.listen(port, () => {
+  app.listen(port, '0.0.0.0', () => {
     console.log(`Listening on http://localhost:${port}`);
   });
 } catch (error) {
