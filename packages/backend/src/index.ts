@@ -1,3 +1,4 @@
+import geoip from 'geoip-lite';
 import express, { Application, Request, Response } from 'express';
 import path from 'path';
 //2YYBcpZ76MSo5xtB
@@ -10,7 +11,11 @@ app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
 app.get('/:id', async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.params;
-  return res.status(200).send({ id, ip: req.ip });
+  const { ip } = req;
+
+  const country = geoip.lookup(ip);
+
+  return res.status(200).send({ id, ip, country });
 });
 
 app.post('/', async (req: Request, res: Response): Promise<Response> => {
