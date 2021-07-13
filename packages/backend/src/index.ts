@@ -10,12 +10,7 @@ app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
 app.get('/:id', async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.params;
-  const ip =
-    //@ts-ignore
-    (req.headers['x-forwarded-for'] || '').split(',').pop() ||
-    req.socket?.remoteAddress ||
-    req.ip;
-  return res.status(200).send({ id, ip });
+  return res.status(200).send({ id, ip: req.ip });
 });
 
 app.post('/', async (req: Request, res: Response): Promise<Response> => {
