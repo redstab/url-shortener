@@ -18,7 +18,7 @@ jobs:
           KEY: ${{ secrets.SSHKEY }}
         with:
           source: "."
-          target: "/root/deploy/url"
+          target: "~/url-shortener"
 
       - name: Executing remote command
         uses: appleboy/ssh-action@master
@@ -27,4 +27,8 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
           PORT: ${{ secrets.PORT }}
           KEY: ${{ secrets.SSHKEY }}
-          script: ls
+          script: |
+            cd ~/url-shortener
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
