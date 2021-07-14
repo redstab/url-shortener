@@ -1,6 +1,8 @@
-import geoip from 'geoip-lite';
 import express, { Application, Request, Response } from 'express';
 import path from 'path';
+import Joi from 'joi';
+import { RateLimitKey } from './utils';
+import { redis } from './db';
 //2YYBcpZ76MSo5xtB
 const app: Application = express();
 const port: number = 3000;
@@ -9,18 +11,49 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
-app.get('/:id', async (req: Request, res: Response): Promise<Response> => {
-  const { id } = req.params;
-  const { ip } = req;
+app.get('/:slug', async (req: Request, res: Response): Promise<Response> => {
+  const { slug } = req.params;
 
-  const country = geoip.lookup(ip);
+  const getResponse = await redis.get(slug);
 
-  return res.status(200).send({ id, ip, country });
+  if (getResponse === null) {
+    return res.status(404).send('Page not found!');
+  }
+
+  res.redirect(getResponse);
+  res.end();
 });
 
-app.post('/', async (req: Request, res: Response): Promise<Response> => {
-  return res.status(200).send({ msg: 'Done' });
+const schema = Joi.object({
+  url: Joi.string().uri(),
+  slug: Joi.string().min(1),
 });
+
+app.post(
+  '/',
+  async (
+    req: Request<{ url: string; slug: string }>,
+    res: Response
+  ): Promise<Response> => {
+    const { error } = schema.validate(req.body);
+
+    if (error) {
+      return res.status(400).send(error.message);
+    }
+
+    const { slug, url } = req.body;
+
+    const response = await redis.setnx(slug, url);
+
+    if (response === 0) {
+      return res.status(409).send('Slug already used');
+    }
+
+    await redis.expire(slug, 60 * 60 * 24 * 30); // Expire in about 30 days
+
+    return res.status(200).send(`http://472.se/${slug}`);
+  }
+);
 
 try {
   app.listen(port, '0.0.0.0', () => {

@@ -1,7 +1,5 @@
 import { createNodeRedisClient } from 'handy-redis';
 
-const client = createNodeRedisClient({
+export const redis = createNodeRedisClient({
   host: process.env.REDIS_HOST,
 });
-
-export { client };
