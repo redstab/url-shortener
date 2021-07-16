@@ -1,16 +1,26 @@
 version: "3.9"
 services:
-  web:
+  nodejs:
     build: .
     environment:
       - REDIS_HOST=redis
-    ports:
-      - "80:3000"
+      - VIRTUAL_HOST=472.se
+      - VIRTUAL_PORT=3000
+    expose:
+      - "3000"
     networks:
       - redis-net
     depends_on:
       - redis
     restart: unless-stopped
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
 
   redis:
     image: "redis:alpine"
