@@ -1,26 +1,30 @@
 version: "3.9"
 services:
-  nodejs:
+  web:
     build: .
+    hostname: web
     environment:
       - REDIS_HOST=redis
-      - VIRTUAL_HOST=472.se
-      - VIRTUAL_PORT=3000
-    expose:
-      - "3000"
     networks:
       - redis-net
+      - proxy-net
     depends_on:
       - redis
     restart: unless-stopped
 
-  nginx-proxy:
-    image: nginxproxy/nginx-proxy
+  caddy-proxy:
+    image: caddy:alpine
+    restart: unless-stopped
+    networks:
+      - proxy-net
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      # - $PWD/site:/srv
+      - caddy-data:/data
+      - caddy-config:/config
 
   redis:
     image: "redis:alpine"
@@ -44,7 +48,10 @@ services:
 
 networks:
   redis-net:
+  proxy-net:
 
 volumes:
   redis-data:
+  caddy-data:
+  caddy-config:
   redis-insight-data:
