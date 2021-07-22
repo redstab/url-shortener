@@ -1,12 +1,15 @@
 import express, { Application, Request, Response } from 'express';
 import path from 'path';
 import Joi from 'joi';
-import { RateLimitKey } from './utils';
 import { redis } from './db';
+import { GenerateRandomKey } from './random';
+import { PersistUrlWithSlug, SlugExists } from './persist';
+import cors from 'cors';
 //2YYBcpZ76MSo5xtB
 const app: Application = express();
 const port: number = 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../../frontend/build')));
@@ -26,8 +29,21 @@ app.get('/:slug', async (req: Request, res: Response): Promise<Response> => {
 
 const schema = Joi.object({
   url: Joi.string().uri(),
-  slug: Joi.string().min(1),
+  slug: Joi.string().min(1).allow(''),
 });
+
+app.put(
+  '/',
+  async (
+    req: Request<{ url: string; slug: string }>,
+    res: Response
+  ): Promise<Response> => {
+    const { slug } = req.body;
+    return res.send({
+      slug: !slug ? true : !(await SlugExists(slug)),
+    });
+  }
+);
 
 app.post(
   '/',
@@ -41,17 +57,22 @@ app.post(
       return res.status(400).send(error.message);
     }
 
-    const { slug, url } = req.body;
+    let { slug, url } = req.body;
 
-    const response = await redis.setnx(slug, url);
-
-    if (response === 0) {
-      return res.status(409).send('Slug already used');
+    if (!slug) {
+      slug = await GenerateRandomKey();
     }
 
-    await redis.expire(slug, 60 * 60 * 24 * 30); // Expire in about 30 days
+    const { error: persistError } = await PersistUrlWithSlug(url, slug);
 
-    return res.status(200).send(`http://472.se/${slug}`);
+    const ttl = await redis.ttl(slug);
+
+    return res.status(persistError ? 409 : 200).send({
+      url,
+      slug,
+      ttl,
+      error: persistError ? 'Slug already used' : '',
+    });
   }
 );
 
