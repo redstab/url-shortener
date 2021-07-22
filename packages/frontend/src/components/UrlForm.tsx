@@ -9,14 +9,14 @@ import { useForm } from "react-hook-form";
 const validateSlug = async (value: string | undefined) => {
   const {
     data: { slug: isValidSlug },
-  } = await axios.put<{ slug: string }>("http://localhost:3000", {
+  } = await axios.put<{ slug: string }>("https://472.se", {
     slug: value,
   });
   return isValidSlug;
 };
 
 const CreateURLSlug = async (url: string, slug?: string) =>
-  axios.post("http://localhost:3000", { url, slug });
+  axios.post("https://472.se", { url, slug });
 
 export const UrlForm = () => {
   const history = useHistory();
